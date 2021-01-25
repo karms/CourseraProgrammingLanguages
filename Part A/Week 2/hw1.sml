@@ -43,18 +43,45 @@ fun get_nth (words : string list, nth) =
     "June", "July", "August", "September", "October", 
     "November", "December"], month) ^ " " ^ Int.ToString(day) ^ ", " ^ Int.ToString(year) *)
 
-fun number_before_reaching_sum (a, b : int) =
-    return b
+fun number_before_reaching_sum (sum, all : int list) =
+    let 
+        fun walk (amount, count, rest : int list) =
+            if null rest 
+            then count 
+            else
+                let 
+                    val current = amount + hd rest 
+                in 
+                    if current >= sum 
+                    then count 
+                    else walk (current, count + 1, tl rest)
+                end 
+    in
+        walk (0, 0, all)
+    end
 
-fun what_month (month : int) =
-    return month
 
-fun month_range (a, b : int) =
-    return []
+fun what_month (day : int) =
+    1 + number_before_reaching_sum(day, [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
+
+fun month_range (day1 : int, day2 : int) =
+            if day1 > day2
+            then []
+            else (what_month day1) :: month_range(day1 + 1, day2)
 
 fun oldest (dates : (int * int * int) list) =
-    return b (* option? *)
-
+    let 
+        fun walk (rest, oldest) =
+            if null rest 
+            then SOME oldest
+            else if is_older (oldest, hd rest)
+                 then walk (tl rest, oldest)
+                 else walk (tl rest, hd rest)
+    in 
+        if null dates
+        then NONE
+        else walk (tl dates, hd dates)
+    end
 
 
 
