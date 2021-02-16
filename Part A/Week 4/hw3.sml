@@ -15,47 +15,35 @@ val rev_string = fn : string -> string
 
 *)
 
-fun starts_with_capital s = 
-  let 
-    val c = String.sub (s, 0)
-  in 
-    ord(c) >= ord(#"A") andalso ord(c) <= ord(#"Z")
-  end 
-  
+infix |>
+fun x |> f = f x
 
-fun only_capitals cs = 
-  case cs of
-      [] => []
-    | s :: cs' => 
-        if starts_with_capital s
-        then s :: only_capitals cs'
-        else only_capitals cs'
+val only_capitals = List.filter (fn str => String.sub (str, 0) |> Char.isUpper)
 
 fun longest_string1 cs =
-  let fun test (match, current) = 
-    if String.size match > String.size current
-	then match
-	else current
-  in foldl test "" cs end
+	let fun test (match, current) = 
+		if String.size match > String.size current
+		then match
+		else current
+	in foldl test "" cs end
 
-fun longest_string2 cs =
-  let fun test (match, current) = 
-    if String.size match >= String.size current
-	then match
-	else current
-  in foldl test "" cs end
+val longest_string2 =
+	foldl (fn (match, current) =>
+			if (String.size match) >= (String.size current)
+			then match
+			else current
+		) ""
 
-fun longest_string_helper f cs match =
-let fun test (match, current) = 
-    if f (String.size match) (String.size current)
-	then match
-	else current
-  in foldl test "" cs end
+fun longest_string_helper f =
+	foldl (fn (match, current) => 
+		if f (String.size match, String.size current)
+		then match
+		else current
+	) ""
 
-fun fix3 f a b c = f a c b
-val longest_string3 = fix3 longest_string_helper (fn a => fn b => a > b) ""
+val longest_string3 = longest_string_helper (fn (a, b) => a > b)
 
-val longest_string4 = fix3 longest_string_helper (fn a => fn b => a >= b) ""
+val longest_string4 = longest_string_helper (fn (a, b) => a >= b)
 
 val rev_string = String.implode o List.rev o String.explode
 
