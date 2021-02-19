@@ -62,3 +62,42 @@ val match = fn : valu * pattern -> (string * valu) list option
 val first_match = fn : valu -> pattern list -> (string * valu) list option 
 
 *)
+
+fun first_answer f xs = 
+		case xs of
+    		[] => raise NoAnswer
+		  | x::xs' => case f x of
+						 NONE => first_answer f xs'
+					   | SOME found => found
+
+
+fun all_answers f xs = 
+	let fun walk (lst, acc) = 
+		case lst of
+    		[] => SOME acc
+		  | x::xs' => case f x of
+						 NONE => NONE
+					   | SOME found => walk (xs', found @ acc)
+	in 
+		walk (xs, [])
+	end
+
+val count_wildcards = g (fn x => 1) (fn x => 0)
+
+val count_wild_and_variable_lengths = 
+	g (fn x => 1) (fn x => String.size x)
+
+fun count_some_var (s, p) = 
+	g (fn x => 0) (fn x => if x = s then 1 else 0) p
+
+fun check_pat p = 
+	let 
+		fun all_strings p =
+			p
+		
+		fun exists p =
+			p
+
+	in
+
+	end
