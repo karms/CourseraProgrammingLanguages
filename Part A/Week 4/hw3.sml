@@ -64,20 +64,22 @@ val first_match = fn : valu -> pattern list -> (string * valu) list option
 *)
 
 fun first_answer f xs = 
-		case xs of
-    		[] => raise NoAnswer
-		  | x::xs' => case f x of
-						 NONE => first_answer f xs'
-					   | SOME found => found
+	case xs 
+	of [] => raise NoAnswer
+	 | x::xs' => 
+	 	case f x 
+		of NONE => first_answer f xs'
+		 | SOME found => found
 
 
 fun all_answers f xs = 
 	let fun walk (lst, acc) = 
-		case lst of
-    		[] => SOME acc
-		  | x::xs' => case f x of
-						 NONE => NONE
-					   | SOME found => walk (xs', found @ acc)
+		case lst 
+		of [] => SOME acc
+		 | x::xs' =>
+			case f x 
+				of NONE => NONE
+				 | SOME found => walk (xs', found @ acc)
 	in 
 		walk (xs, [])
 	end
@@ -90,14 +92,40 @@ val count_wild_and_variable_lengths =
 fun count_some_var (s, p) = 
 	g (fn x => 0) (fn x => if x = s then 1 else 0) p
 
-fun check_pat p = 
+val check_pat = 
 	let 
-		fun all_strings p =
-			p
-		
-		fun exists p =
-			p
+		fun grab_variables all =
+			case all 
+			of ConstructorP(_, P) => grab_variables P
+			 | TupleP xs => List.concat (map grab_variables xs)
+			 | Variable v => [v]
+			 | _ => []
+
+		fun has_duplicates lst =
+			case lst
+			of [] => false
+			| (x::xs) => List.exists (fn y => x = y) xs orelse has_duplicates xs
 
 	in
-
+		not o has_duplicates o grab_variables
 	end
+
+fun match v =
+  case v
+    of (_, Wildcard) => SOME []
+     | (v, Variable s) => SOME [(s, v)]
+     | (Unit, UnitP) => SOME []
+     | (Const v, ConstP v') => if v = v' then SOME [] else NONE
+     | (Tuple vs, TupleP ps) =>
+         if length(vs) = length(ps)
+         then all_answers match (ListPair.zip(vs, ps))
+         else NONE
+     | (Constructor(s2, v), ConstructorP(s1, p)) => 
+         if s1 = s2
+         then match(v, p)
+         else NONE
+     | _ => NONE
+
+fun first_match v patterns =
+  SOME(first_answer (fn p => match(v, p)) patterns)
+  handle NoAnswer => NONE
